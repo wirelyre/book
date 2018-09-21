@@ -1,0 +1,48 @@
+file = { SOI ~ (pattern_action | pattern_only | action_only)* ~ EOI }
+
+pattern_action = { pattern ~ action }
+pattern_only = { pattern }
+action_only = { action }
+
+pattern = { special_pattern | expr }
+    special_pattern = { "BEGIN" | "END" }
+
+action = { "{" ~ (statement ~ statement_separator)* ~ statement? ~ "}" }
+    statement = _{ print_statement | assignment_statement | NEWLINE }
+    statement_separator = _{ ";" | NEWLINE }
+    print_statment = {
+        // TODO: needs more tokenization checking?
+        "print" ~ expr
+    }
+    assignment_statement = { lvalue ~ "=" ~ expr }
+
+expr = {
+    "(" ~ expr ~ ")"
+    | terminal ~ (op ~ terminal)*
+}
+terminal = { literal | function_call | !function_call ~ variable }
+op = _{
+    op_exponent | op_multiply | op_divide | op_modulus | op_add | op_subtract
+    | op_concat | op_less | op_lessOrEqual | op_notEqual | op_equal
+    | op_greater | op_greaterOrEqual | op_match | op_nonMatch | op_and | op_or
+}
+
+op_exponent = { "^" }
+op_multiply = { "*" }
+op_divide   = { "/" }
+op_modulus  = { "%" }
+op_add      = { "+" }
+op_subtract = { "-" }
+op_concat   = { "" } // TODO
+op_less           = { "<" }
+op_lessOrEqual    = { "<=" }
+op_notEqual       = { "!=" }
+op_equal          = { "==" }
+op_greater        = { ">" }
+op_greaterOrEqual = { ">=" }
+op_match    = { "~" }
+op_nonMatch = { "!~" }
+op_and = { "&&" }
+op_or  = { "||" }
+
+WHITESPACE = { " " | "\t" }

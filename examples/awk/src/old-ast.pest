@@ -1,0 +1,35 @@
+program = { SOI ~ pair* ~ EOI }
+pair = _{ conditional_action | pattern | action }
+conditional_action = { pattern ~ action }
+
+expr = {
+    grouping | field_reference | post_increment | post_decrement | pre_increment | pre_decrement |
+    exponentiation | unary_arithmetic |
+    arithmetic
+}
+grouping = { "(" ~ expr ~ ")" }
+field_reference = { "$" ~ expr }
+post_increment = { lvalue ~ "++" }
+post_decrement = { lvalue ~ "--" }
+pre_increment = { "++" ~ lvalue }
+pre_decrement = { "--" ~ lvalue }
+exponentiation = { expr ~ "^" ~ expr }
+
+unary_arithmetic = { (op_not | op_plus | op_minus) ~ expr }
+arithmetic = { unary_arithmetic ~ ((op_multiply | op_divide | op_modulus | op_add | op_subtract) ~ unary_arithmetic)* }
+concat = { arithmetic ~ arithmetic }
+
+op_not = { "!" }
+op_add = { "+" }
+op_subtract = { "-" }
+op_multiply = { "*" }
+op_divide = { "/" }
+op_modulus = { "%" }
+op_lt = { "<" }
+op_le = { "<=" }
+op_ne = { "!=" }
+op_eq = { "==" }
+op_gt = { ">" }
+op_ge = { ">=" }
+
+arithmetic = { expr ~ op_mult ~ op_div ~ op_mod

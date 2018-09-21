@@ -1,0 +1,9 @@
+[package]
+name = "awk"
+version = "0.1.0"
+authors = ["wirelyre <wirelyre@gmail.com>"]
+
+[dependencies]
+pest = "2.1"
+pest_derive = "2.1"
+regex = "1.0"
