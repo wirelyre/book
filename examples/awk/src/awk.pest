@@ -23,8 +23,10 @@ expr = {
 terminal = { literal | function_call | !function_call ~ variable }
 op = _{
     op_exponent | op_multiply | op_divide | op_modulus | op_add | op_subtract
-    | op_concat | op_less | op_lessOrEqual | op_notEqual | op_equal
-    | op_greater | op_greaterOrEqual | op_match | op_nonMatch | op_and | op_or
+    | op_lessOrEqual | op_equal    | op_greaterOrEqual
+    | op_less        | op_notEqual | op_greater
+    | op_and | op_or
+    | op_match | op_nonMatch | op_concat
 }
 
 op_exponent = { "^" }
@@ -33,16 +35,16 @@ op_divide   = { "/" }
 op_modulus  = { "%" }
 op_add      = { "+" }
 op_subtract = { "-" }
-op_concat   = { "" } // TODO
-op_less           = { "<" }
 op_lessOrEqual    = { "<=" }
-op_notEqual       = { "!=" }
 op_equal          = { "==" }
-op_greater        = { ">" }
 op_greaterOrEqual = { ">=" }
-op_match    = { "~" }
-op_nonMatch = { "!~" }
+op_less           = { "<" }
+op_notEqual       = { "!=" }
+op_greater        = { ">" }
 op_and = { "&&" }
 op_or  = { "||" }
+op_match    = { "~" }
+op_nonMatch = { "!~" }
+op_concat   = { "" }
 
 WHITESPACE = { " " | "\t" }
