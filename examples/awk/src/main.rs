@@ -1,6 +1,8 @@
 #![allow(unreachable_code)]
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate clap;
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
@@ -24,31 +26,29 @@ enum InputFile {
 fn main() -> Result<(), pest::error::Error<ast::Rule>> {
     // Parse command-line arguments
 
-    let mut args = env::args().skip(1);
+    let args = clap_app!(awk =>
+        (version: "0.1")
+        (about: "a small language for text processing")
+        (@arg progfile: -f +takes_value +required "the AWK script to run")
+        (@arg INPUT: +multiple "an input file, or - for stdin")
+    )
+    .get_matches();
 
-    let program_text = match args.next() {
-        Some(text) => {
-            if text == "-f" {
-                fs::read_to_string(args.next().expect("program file required")).unwrap()
-            } else {
-                text
-            }
-        }
-        None => return Ok(()),
+    let program_file = args.value_of("progfile").unwrap();
+    let program_text = fs::read_to_string(program_file).expect("could not read program file");
+
+    let files = match args.values_of("INPUT") {
+        Some(files) => files
+            .map(|f| {
+                if f == "-" {
+                    InputFile::Stdin
+                } else {
+                    InputFile::NamedFile(f.to_string())
+                }
+            })
+            .collect(),
+        None => vec![InputFile::Stdin],
     };
-
-    let mut files: Vec<_> = args
-        .map(|filename| {
-            if filename == "-" {
-                InputFile::Stdin
-            } else {
-                InputFile::NamedFile(filename)
-            }
-        })
-        .collect();
-    if files.is_empty() {
-        files.push(InputFile::Stdin);
-    }
 
     // Initialize and run program
 
