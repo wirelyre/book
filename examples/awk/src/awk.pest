@@ -20,15 +20,15 @@ single_pattern = _{ begin_pattern | end_pattern | regex | expr }
 action = { "{" ~ (statement ~ statement_separator ~ NEWLINE*)* ~ statement? ~ "}" }
     statement = _{ print_statement | assignment_statement | NEWLINE }
     statement_separator = _{ ";" | NEWLINE }
-    print_statement = { "print" ~ EOT ~ expr }
+    print_statement = ${ "print" ~ EOT ~ WHITESPACE ~ expr }
     assignment_statement = { lvalue ~ "=" ~ expr }
 
 lvalue = { variable | field_ref }
 variable = @{ !func_name ~ ASCII_ALPHA ~ variable_char* }
     variable_char = { ASCII_ALPHANUMERIC | "_" }
 
-expr = { "(" ~ expr ~ ")"
-       | terminal ~ (op ~ terminal)* }
+expr = !{ "(" ~ expr ~ ")"
+        | terminal ~ (op ~ terminal)* }
 terminal = { literal | function_call | variable | field_ref }
 op = _{ op_add | op_sub | op_mul | op_div | op_mod | op_exp
       | op_leq | op_eq  | op_geq
@@ -47,7 +47,7 @@ string = ${ "\"" ~ string_char+ ~ "\"" }
     escaped_char = { "\\" ~ ("r" | "n" | "t" | "\\" | "\"") }
 
 function_call = { func_name ~ "(" ~ args ~ ")" }
-    func_name = { ("exp" | "log" | "sqrt" | "int" | "rand") ~ EOT }
+    func_name = @{ ("exp" | "log" | "sqrt" | "int" | "rand") ~ EOT }
     args = _{ (expr ~ ("," ~ expr)*)? }
 
 
