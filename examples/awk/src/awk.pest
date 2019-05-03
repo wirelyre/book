@@ -1,50 +1,66 @@
+// TODO: check for proper ends of tokens
+// TODO: if/else conditionals
+// TODO: unary ops like not
+// TODO: binary match `~`, nonMatch `!~`
+
 file = { SOI ~ (pattern_action | pattern_only | action_only)* ~ EOI }
 
 pattern_action = { pattern ~ action }
 pattern_only = { pattern }
 action_only = { action }
 
-pattern = { special_pattern | expr }
-    special_pattern = { "BEGIN" | "END" }
+pattern = { single_pattern ~ ("," ~ single_pattern)? }
+single_pattern = _{ begin_pattern | end_pattern | regex | expr }
+    begin_pattern = @{ "BEGIN" ~ EOT }
+    end_pattern   = @{ "END"   ~ EOT }
+    regex = @{ "/" ~ regex_char* ~ "/" }
+    regex_char = _{ !("\\" | "/") ~ ANY | "\\" ~ ("\\" | "/") }
 
 action = { "{" ~ (statement ~ statement_separator)* ~ statement? ~ "}" }
     statement = _{ print_statement | assignment_statement | NEWLINE }
     statement_separator = _{ ";" | NEWLINE }
-    print_statment = {
-        // TODO: needs more tokenization checking?
-        "print" ~ expr
-    }
+    print_statement = { "print" ~ EOT ~ expr }
     assignment_statement = { lvalue ~ "=" ~ expr }
 
-expr = {
-    "(" ~ expr ~ ")"
-    | terminal ~ (op ~ terminal)*
-}
-terminal = { literal | function_call | !function_call ~ variable }
-op = _{
-    op_exponent | op_multiply | op_divide | op_modulus | op_add | op_subtract
-    | op_lessOrEqual | op_equal    | op_greaterOrEqual
-    | op_less        | op_notEqual | op_greater
-    | op_and | op_or
-    | op_match | op_nonMatch | op_concat
-}
+lvalue = { variable | field_ref }
+variable = @{ !func_name ~ ASCII_ALPHA ~ variable_char* }
+    variable_char = { ASCII_ALPHANUMERIC | "_" }
 
-op_exponent = { "^" }
-op_multiply = { "*" }
-op_divide   = { "/" }
-op_modulus  = { "%" }
-op_add      = { "+" }
-op_subtract = { "-" }
-op_lessOrEqual    = { "<=" }
-op_equal          = { "==" }
-op_greaterOrEqual = { ">=" }
-op_less           = { "<" }
-op_notEqual       = { "!=" }
-op_greater        = { ">" }
-op_and = { "&&" }
-op_or  = { "||" }
-op_match    = { "~" }
-op_nonMatch = { "!~" }
-op_concat   = { "" }
+expr = { "(" ~ expr ~ ")"
+       | terminal ~ (op ~ terminal)* }
+terminal = { literal | function_call | variable | field_ref }
+op = _{ op_add | op_sub | op_mul | op_div | op_mod | op_exp
+      | op_leq | op_eq  | op_geq
+      | op_lt  | op_neq | op_gt
+      | op_and | op_or
+      | op_concat }
 
-WHITESPACE = { " " | "\t" }
+field_ref = { "$" ~ (terminal | "("~expr~")") }
+literal = { number | string }
+number = @{ ASCII_DIGIT ~ ASCII_DIGIT* ~ ("." ~ ASCII_DIGIT* ~ exponent?)?
+          | "." ~ ASCII_DIGIT+ ~ exponent? }
+    exponent = _{ ^"e" ~ ("+"|"-") ~ ASCII_DIGIT+ }
+string = ${ "\"" ~ string_char+ ~ "\"" }
+    string_char = _{ regular_char | escaped_char }
+    regular_char = { !("\\" | "\"" | NEWLINE) ~ ANY }
+    escaped_char = { "\\" ~ ("r" | "n" | "t" | "\\" | "\"") }
+
+function_call = { func_name ~ "(" ~ args ~ ")" }
+    func_name = { ("exp" | "log" | "sqrt" | "int" | "rand") ~ EOT }
+    args = _{ (expr ~ ("," ~ expr)*)? }
+
+
+op_add = { "+" } op_sub = { "-" }
+op_mul = { "*" } op_div = { "/" } op_mod = { "%" }
+op_exp = { "^" }
+
+op_leq = { "<=" } op_eq  = { "==" } op_geq = { ">=" }
+op_lt  = { "<" }  op_neq = { "!=" } op_gt  = { ">" }
+
+op_and = { "&&" } op_or  = { "||" }
+
+op_concat = { "" }
+
+
+WHITESPACE = _{ " " | "\t" }
+EOT = _{ !variable_char } // end of token
