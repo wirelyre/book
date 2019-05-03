@@ -3,7 +3,7 @@
 // TODO: unary ops like not
 // TODO: binary match `~`, nonMatch `!~`
 
-file = { SOI ~ (pattern_action | pattern_only | action_only)* ~ EOI }
+file = _{ SOI ~ (pattern_action | pattern_only | action_only)* ~ EOI }
 
 pattern_action = { pattern ~ action }
 pattern_only = { pattern }

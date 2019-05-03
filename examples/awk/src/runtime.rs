@@ -5,7 +5,7 @@ use std::io::BufRead;
 use crate::ast::{self, Expr, Pattern};
 
 #[derive(Clone)]
-enum Value {
+pub enum Value {
     Number(f64),
     String(String),
 }
@@ -69,19 +69,18 @@ impl Line {
     }
 
     fn get_field_ref(&mut self, i: usize) -> &mut Value {
-        let fields = match self.fields {
-            Some(f) => &mut f,
-            None => {
-                self.fields = Some(
-                    self.string
-                        .unwrap()
-                        .split_whitespace()
-                        .map(|field| Value::String(field.to_string()))
-                        .collect(),
-                );
-                self.fields.as_mut().unwrap()
-            }
-        };
+        if self.fields.is_none() {
+            self.fields = Some(
+                self.string
+                    .as_ref()
+                    .unwrap()
+                    .split_whitespace()
+                    .map(|field| Value::String(field.to_string()))
+                    .collect(),
+            );
+        }
+
+        let fields = self.fields.as_mut().unwrap();
 
         if fields.len() < i + 1 {
             fields.resize(i + 1, Value::String(String::new()));
@@ -91,13 +90,11 @@ impl Line {
     }
 
     fn get_string_ref(&mut self) -> &mut String {
-        match self.string {
-            Some(s) => &mut s,
-            None => {
-                self.string = Some(itertools::join(self.fields.unwrap(), " "));
-                self.string.as_mut().unwrap()
-            }
+        if self.string.is_none() {
+            self.string = Some(itertools::join(self.fields.as_ref().unwrap(), " "));
         }
+
+        self.string.as_mut().unwrap()
     }
 
     pub fn get_field(&mut self, field: usize) -> &Value {
@@ -174,7 +171,10 @@ impl ast::Statement {
         use ast::Statement;
 
         match self {
-            Statement::Assignment(lv, expr) => lv.assign(env, expr.eval(env)),
+            Statement::Assignment(lv, expr) => {
+                let val = expr.eval(env);
+                lv.assign(env, val)
+            }
             Statement::Print(expr) => print!("{}", expr.eval(env)),
         }
     }
@@ -218,7 +218,7 @@ impl ast::Expr {
                     Exponent => (lhs.as_num().powf(rhs.as_num())).into(),
 
                     Concat => {
-                        let s = lhs.to_string();
+                        let mut s = lhs.to_string();
                         s.push_str(&rhs.to_string());
                         Value::String(s)
                     }

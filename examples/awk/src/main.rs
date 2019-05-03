@@ -21,7 +21,7 @@ enum InputFile {
     NamedFile(String),
 }
 
-fn main() {
+fn main() -> Result<(), pest::error::Error<ast::Rule>> {
     // Parse command-line arguments
 
     let mut args = env::args().skip(1);
@@ -34,24 +34,25 @@ fn main() {
                 text
             }
         }
-        None => return,
+        None => return Ok(()),
     };
 
-    let mut files: Vec<_> =
-        args.map(|filename| {
+    let mut files: Vec<_> = args
+        .map(|filename| {
             if filename == "-" {
                 InputFile::Stdin
             } else {
                 InputFile::NamedFile(filename)
             }
-        }).collect();
+        })
+        .collect();
     if files.is_empty() {
         files.push(InputFile::Stdin);
     }
 
     // Initialize and run program
 
-    let program = ast::parse(&program_text);
+    let program = ast::parse(&program_text)?;
     let mut env = Environment::default();
 
     env.run_begin(&program);
@@ -72,4 +73,6 @@ fn main() {
     }
 
     env.run_end(&program);
+
+    Ok(())
 }
