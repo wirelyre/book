@@ -11,11 +11,10 @@ extern crate pest_derive;
 mod ast;
 mod runtime;
 
-use std::env;
-use std::fs;
-use std::io;
+use failure::Error;
+use std::{fs, io};
 
-use runtime::Environment;
+use crate::runtime::Environment;
 
 #[derive(Debug)]
 enum InputFile {
@@ -23,7 +22,7 @@ enum InputFile {
     NamedFile(String),
 }
 
-fn main() -> Result<(), pest::error::Error<ast::Rule>> {
+fn main() -> Result<(), Error> {
     // Parse command-line arguments
 
     let args = clap_app!(awk =>
@@ -35,7 +34,8 @@ fn main() -> Result<(), pest::error::Error<ast::Rule>> {
     .get_matches();
 
     let program_file = args.value_of("progfile").unwrap();
-    let program_text = fs::read_to_string(program_file).expect("could not read program file");
+    let program_text = fs::read_to_string(program_file)
+        .map_err(|_| failure::err_msg("could not read program file"))?;
 
     let files = match args.values_of("INPUT") {
         Some(files) => files
@@ -62,14 +62,12 @@ fn main() -> Result<(), pest::error::Error<ast::Rule>> {
             InputFile::Stdin => {
                 let stdin = io::stdin();
                 let mut b = stdin.lock();
-                // TODO: handle IO errors
-                env.run_file(&program, &mut b).unwrap();
+                env.run_file(&program, &mut b)?;
             }
             InputFile::NamedFile(name) => {
                 let file = fs::File::open(name).expect("file must exist");
                 let mut b = io::BufReader::new(file);
-                // TODO: handle IO errors
-                env.run_file(&program, &mut b).unwrap();
+                env.run_file(&program, &mut b)?;
             }
         }
     }
