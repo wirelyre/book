@@ -62,12 +62,14 @@ fn main() -> Result<(), pest::error::Error<ast::Rule>> {
             InputFile::Stdin => {
                 let stdin = io::stdin();
                 let mut b = stdin.lock();
-                env.run_file(&program, &mut b);
+                // TODO: handle IO errors
+                env.run_file(&program, &mut b).unwrap();
             }
             InputFile::NamedFile(name) => {
                 let file = fs::File::open(name).expect("file must exist");
                 let mut b = io::BufReader::new(file);
-                env.run_file(&program, &mut b);
+                // TODO: handle IO errors
+                env.run_file(&program, &mut b).unwrap();
             }
         }
     }

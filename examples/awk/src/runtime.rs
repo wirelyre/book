@@ -131,6 +131,7 @@ impl Environment {
             }
         }
     }
+
     pub fn run_end(&mut self, p: &Program) {
         for (pattern, action) in p {
             match pattern {
@@ -139,10 +140,10 @@ impl Environment {
             }
         }
     }
-    pub fn run_file<B: BufRead>(&mut self, p: &Program, b: &mut B) {
-        let mut record = String::new();
 
-        while b.read_line(&mut record).unwrap() > 0 {
+    pub fn run_file<B: BufRead>(&mut self, p: &Program, b: &mut B) -> std::io::Result<()> {
+        for record in b.lines() {
+            let record = record?;
             self.line = Line::new(&record);
 
             for (pattern, action) in p {
@@ -153,16 +154,25 @@ impl Environment {
                             action.run(self);
                         }
                     }
+                    Pattern::Regex(r) => {
+                        if r.is_match(&record) {
+                            action.run(self);
+                        }
+                    }
                     _ => (),
                 }
             }
         }
+
+        Ok(())
     }
 }
 
 impl ast::Action {
-    fn run(&self, _env: &mut Environment) {
-        unimplemented!()
+    fn run(&self, env: &mut Environment) {
+        for stmt in &self.stmts {
+            stmt.eval(env);
+        }
     }
 }
 
@@ -175,7 +185,7 @@ impl ast::Statement {
                 let val = expr.eval(env);
                 lv.assign(env, val)
             }
-            Statement::Print(expr) => print!("{}", expr.eval(env)),
+            Statement::Print(expr) => println!("{}", expr.eval(env)),
         }
     }
 }

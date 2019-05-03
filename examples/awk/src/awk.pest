@@ -2,8 +2,9 @@
 // TODO: if/else conditionals
 // TODO: unary ops like not
 // TODO: binary match `~`, nonMatch `!~`
+// TODO: `print expr1, expr2` and `print`
 
-file = _{ SOI ~ (pattern_action | pattern_only | action_only)* ~ EOI }
+file = _{ SOI ~ (pattern_action | pattern_only | action_only | NEWLINE)* ~ EOI }
 
 pattern_action = { pattern ~ action }
 pattern_only = { pattern }
@@ -16,7 +17,7 @@ single_pattern = _{ begin_pattern | end_pattern | regex | expr }
     regex = @{ "/" ~ regex_char* ~ "/" }
     regex_char = _{ !("\\" | "/") ~ ANY | "\\" ~ ("\\" | "/") }
 
-action = { "{" ~ (statement ~ statement_separator)* ~ statement? ~ "}" }
+action = { "{" ~ (statement ~ statement_separator ~ NEWLINE*)* ~ statement? ~ "}" }
     statement = _{ print_statement | assignment_statement | NEWLINE }
     statement_separator = _{ ";" | NEWLINE }
     print_statement = { "print" ~ EOT ~ expr }
