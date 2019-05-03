@@ -1,52 +1,47 @@
 use pest::Parser;
+use regex::Regex;
 
 #[derive(Parser)]
 #[grammar = "awk.pest"]
 struct AwkParser;
 
-pub fn parse(_program_text: &str) -> Vec<(Pattern, Action)> {
-    unimplemented!()
+pub fn parse(program_text: &str) -> Result<Vec<(Pattern, Action)>, pest::error::Error<Rule>> {
+    let pairs = AwkParser::parse(Rule::file, program_text)?;
+
+    Ok(unimplemented!())
 }
 
-pub struct Action {
-}
+pub struct Action {}
 
 pub enum Pattern {
     Always,
     Begin,
     End,
     Expr(Expr),
+    Regex(Regex),
     // Range(Expr, Expr),
 }
 
 pub enum Lvalue {
     Field(Expr),
     Variable(String),
-    /*
-    PostDecrement(Box<Lvalue>),
-    PostIncrement(Box<Lvalue>),
-    PreDecrement(Box<Lvalue>),
-    PreIncrement(Box<Lvalue>),
-    */
+}
+
+pub enum Statement {
+    Assignment(Lvalue, Expr),
+    Print(Expr),
 }
 
 pub enum Expr {
     Num(f64),
     String(String),
-    Lvalue(Box<Lvalue>),
 
     Unary(UnaryOp, Box<Expr>),
-    Binary(BinaryOp, Box<Expr>),
-    // Assignment(AssignmentOp, Box<Lvalue>, Box<Expr>),
-    Assignment(Box<Lvalue>, Box<Expr>),
-
-    Conditional(Box<Expr>, Box<Expr>, Box<Expr>),
+    Binary(BinaryOp, Box<Expr>, Box<Expr>),
 }
 
 pub enum UnaryOp {
-    Not,
-    Plus,
-    Minus,
+    Field,
 }
 pub enum BinaryOp {
     Exponent,
@@ -62,19 +57,6 @@ pub enum BinaryOp {
     Equal,
     Greater,
     GreaterOrEqual,
-    Match,
-    NonMatch,
     And,
     Or,
 }
-/*
-pub enum AssignmentOp {
-    Exponent,
-    Modulus,
-    Multiply,
-    Divide,
-    Add,
-    Subtract,
-    Normal,
-}
-*/
