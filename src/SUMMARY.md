@@ -11,5 +11,5 @@
     - [Example: JSON](examples/json.md)
     - [Example: The J language](examples/jlang.md)
 - [Operator precedence](precedence.md)
-    - [Example: Calculator (WIP)](examples/calculator.md)
+    - [Example: Calculator](examples/calculator.md)
 - [Final project: Awk clone (WIP)](examples/awk.md)
