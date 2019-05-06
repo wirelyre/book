@@ -27,9 +27,8 @@ lvalue = { variable | field_ref }
 variable = @{ !func_name ~ ASCII_ALPHA ~ variable_char* }
     variable_char = { ASCII_ALPHANUMERIC | "_" }
 
-expr = !{ "(" ~ expr ~ ")"
-        | terminal ~ (op ~ terminal)* }
-terminal = { literal | function_call | variable | field_ref }
+expr = !{ terminal ~ (op ~ terminal)* }
+terminal = _{ literal | function_call | variable | field_ref | "(" ~ expr ~ ")" }
 op = _{ op_add | op_sub | op_mul | op_div | op_mod | op_exp
       | op_leq | op_eq  | op_geq
       | op_lt  | op_neq | op_gt
@@ -42,9 +41,9 @@ number = @{ ASCII_DIGIT ~ ASCII_DIGIT* ~ ("." ~ ASCII_DIGIT* ~ exponent?)?
           | "." ~ ASCII_DIGIT+ ~ exponent? }
     exponent = _{ ^"e" ~ ("+"|"-") ~ ASCII_DIGIT+ }
 string = ${ "\"" ~ string_char+ ~ "\"" }
-    string_char = _{ regular_char | escaped_char }
-    regular_char = { !("\\" | "\"" | NEWLINE) ~ ANY }
-    escaped_char = { "\\" ~ ("r" | "n" | "t" | "\\" | "\"") }
+    string_char = _{ regular_chars | escaped_char }
+    regular_chars = { (!("\\" | "\"" | NEWLINE) ~ ANY)+ }
+    escaped_char  = { "\\" ~ ("r" | "n" | "t" | "\\" | "\"") }
 
 function_call = { func_name ~ "(" ~ args ~ ")" }
     func_name = @{ ("exp" | "log" | "sqrt" | "int" | "rand") ~ EOT }

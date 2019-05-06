@@ -197,6 +197,11 @@ impl ast::Expr {
         match self {
             Expr::Num(n) => Value::Number(*n),
             Expr::String(s) => Value::String(s.clone()),
+            Expr::Variable(name) => env
+                .variables
+                .get(name)
+                .cloned()
+                .unwrap_or(Value::String(String::new())),
 
             Expr::Unary(UnaryOp::Field, n) => {
                 let n = n.eval(env).as_num() as usize;
@@ -245,6 +250,9 @@ impl ast::Expr {
                     Or => (lhs.truthy() || rhs.truthy()).into(),
                 }
             }
+
+            Expr::NullaryFunc(f) => f().into(),
+            Expr::UnaryFunc(f, val) => f(val.eval(env).as_num()).into(),
         }
     }
 }
